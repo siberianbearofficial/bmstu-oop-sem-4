@@ -30,9 +30,9 @@ static my_error_t figure_center_reset(point_t &center, points_t &points)
         }
         if (rc == SUCCESS)
         {
-            center.x = (max_x - min_x) / 2;
-            center.y = (max_y - min_y) / 2;
-            center.z = (max_z - min_z) / 2;
+            center.x = (max_x + min_x) / 2;
+            center.y = (max_y + min_y) / 2;
+            center.z = (max_z + min_z) / 2;
         }
     }
     return rc;
