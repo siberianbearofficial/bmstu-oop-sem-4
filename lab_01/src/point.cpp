@@ -9,7 +9,7 @@ my_error_t point_initialize(point_t &point)
 }
 
 
-my_error_t point_read(FILE *fin, point_t &point)
+my_error_t point_read(point_t &point, FILE *fin)
 {
     my_error_t rc = SUCCESS;
     if (fin == nullptr)
@@ -19,7 +19,7 @@ my_error_t point_read(FILE *fin, point_t &point)
     return rc;
 }
 
-my_error_t point_write(FILE *fout, const point_t &point)
+my_error_t point_write(const point_t &point, FILE *fout)
 {
     my_error_t rc = SUCCESS;
     if (0 > fprintf(fout, "%lf %lf %lf\n", point.x, point.y, point.z))

@@ -12,8 +12,8 @@ typedef struct edge
     int p2;
 } edge_t;
 
-my_error_t edge_read(FILE *fin, edge_t &edge);
+my_error_t edge_read(edge_t &edge, FILE *fin);
 
-my_error_t edge_write(FILE *fin, const edge_t &edge);
+my_error_t edge_write(const edge_t &edge, FILE *fout);
 
 #endif //EDGE_H

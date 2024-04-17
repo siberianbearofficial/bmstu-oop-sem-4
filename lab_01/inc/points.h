@@ -19,9 +19,9 @@ my_error_t points_free(points_t **points);
 
 my_error_t points_initialize(points_t &points);
 
-my_error_t points_read(FILE *fin, points_t &points);
+my_error_t points_read(points_t &points, FILE *fin);
 
-my_error_t points_write(FILE *fout, const points_t &points);
+my_error_t points_write(const points_t &points, FILE *fout);
 
 my_error_t points_move(points_t &points, const move_t &vector);
 

@@ -2,54 +2,56 @@
 
 static my_error_t edges_array_allocate(edge_t **array, const int size)
 {
-    my_error_t rc = SUCCESS;
     if (!array)
-        rc = NULLPTR_ERROR;
-    else if (size < 0)
-        rc = EDGES_SIZE_ERROR;
-    else
-    {
-        auto *tmp_array = (edge_t *) malloc(size * sizeof(edge_t));
-        if (tmp_array)
-            *array = tmp_array;
-        else
-            rc = MEMORY_ERROR;
-    }
-    return rc;
+        return NULLPTR_ERROR;
+    if (size < 0)
+        return EDGES_SIZE_ERROR;
+
+    auto *tmp_array = (edge_t *) malloc(size * sizeof(edge_t));
+    if (!tmp_array)
+        return MEMORY_ERROR;
+
+    *array = tmp_array;
+
+    return SUCCESS;
 }
 
 my_error_t edges_allocate(edges_t **edges) {
-    my_error_t rc = SUCCESS;
-    if (edges) {
-        auto *tmp_edges = (edges_t *) malloc(sizeof(edges_t));
-        if (tmp_edges)
-            *edges = tmp_edges;
-        else
-            rc = MEMORY_ERROR;
-    }
-    else
-        rc = NULLPTR_ERROR;
-    return rc;
+    if (!edges)
+        return NULLPTR_ERROR;
+
+    auto *tmp_edges = (edges_t *) malloc(sizeof(edges_t));
+    if (!tmp_edges)
+        return MEMORY_ERROR;
+
+    *edges = tmp_edges;
+
+    return SUCCESS;
 }
 
 static my_error_t edges_array_free(edge_t **array) {
-    my_error_t rc = SUCCESS;
     if (!array)
-        rc = NULLPTR_ERROR;
-    else if (*array)
+        return NULLPTR_ERROR;
+
+    if (*array)
+    {
         free(*array);
-    return rc;
+        *array = nullptr;
+    }
+
+    return SUCCESS;
 }
 
 my_error_t edges_free(edges_t **edges) {
-    my_error_t rc;
-    if (edges) {
-        rc = edges_array_free(&(*edges)->array);
-        if (rc == SUCCESS)
-            free(*edges);
-    }
-    else
-        rc = NULLPTR_ERROR;
+    if (!edges)
+        return NULLPTR_ERROR;
+
+    my_error_t rc = edges_array_free(&(*edges)->array);
+    if (rc != SUCCESS)
+        return rc;
+
+    free(*edges);
+
     return rc;
 }
 
@@ -61,102 +63,100 @@ my_error_t edges_initialize(edges_t &edges)
 }
 
 
-my_error_t edges_size_read(FILE *fin, int &size)
+my_error_t edges_size_read(int &size, FILE *fin)
 {
-    my_error_t rc = SUCCESS;
-    if (fin == nullptr)
-        rc = FILE_OPEN_ERROR;
-    else if (fscanf(fin, "%d", &size) != 1)
-        rc = FILE_READ_ERROR;
-    else if (size <= 0)
-        rc = EDGES_SIZE_ERROR;
-    return rc;
+    if (!fin)
+        return FILE_OPEN_ERROR;
+    if (fscanf(fin, "%d", &size) != 1)
+        return FILE_READ_ERROR;
+    if (size <= 0)
+        return EDGES_SIZE_ERROR;
+    return SUCCESS;
 }
 
-my_error_t edges_array_read(FILE *fin, edge_t *array, const int size)
+my_error_t edges_array_read(edge_t *array, const int size, FILE *fin)
 {
+    if (!fin)
+        return FILE_OPEN_ERROR;
+    if (!array)
+        return MEMORY_ERROR;
+    if (size <= 0)
+        return EDGES_SIZE_ERROR;
+
     my_error_t rc = SUCCESS;
-    if (fin == nullptr)
-        rc = FILE_OPEN_ERROR;
-    else if (array == nullptr)
-        rc = MEMORY_ERROR;
-    else if (size <= 0)
-        rc = EDGES_SIZE_ERROR;
-    else
-        for (int i = 0; rc == SUCCESS && i < size; i++)
-            rc = edge_read(fin, array[i]);
+    for (int i = 0; rc == SUCCESS && i < size; i++)
+        rc = edge_read(array[i], fin);
+
     return rc;
 }
 
-my_error_t edges_read(FILE *fin, edges_t &edges)
+my_error_t edges_read(edges_t &edges, FILE *fin)
 {
-    my_error_t rc;
-    if (fin)
-    {
-        rc = edges_size_read(fin, edges.size);
-        if (rc == SUCCESS)
-        {
-            rc = edges_array_allocate(&edges.array, edges.size);
-            if (rc == SUCCESS)
-            {
-                rc = edges_array_read(fin, edges.array, edges.size);
-                if (rc != SUCCESS)
-                    edges_array_free(&edges.array);
-            }
-        }
-    }
-    else
-        rc = FILE_OPEN_ERROR;
+    if (!fin)
+        return NULLPTR_ERROR;
+
+    my_error_t rc = edges_size_read(edges.size, fin);
+    if (rc != SUCCESS)
+        return rc;
+
+    // todo maybe to hide allocation into reading
+    // todo а может и вообще не стоит давать возможность выделения памяти без чтения...
+    rc = edges_array_allocate(&edges.array, edges.size);
+    if (rc != SUCCESS)
+        return rc;
+
+    rc = edges_array_read(edges.array, edges.size, fin);
+    if (rc != SUCCESS)
+        edges_array_free(&edges.array);
+
     return rc;
 }
 
 
-static my_error_t edges_size_write(FILE *fout, const int size) {
+static my_error_t edges_size_write(const int size, FILE *fout) {
+    if (!fout)
+        return NULLPTR_ERROR;
+    if (size < 0)
+        return EDGES_SIZE_ERROR;
+    if (0 > fprintf(fout, "%d\n", size))
+        return FILE_WRITE_ERROR;
+    return SUCCESS;
+}
+
+static my_error_t edges_array_write(const edge_t *array, const int size, FILE *fout) {
+    if (!fout)
+        return NULLPTR_ERROR;
+    if (!array)
+        return NO_DATA_ERROR;
+    if (size < 0)
+        return EDGES_SIZE_ERROR;
+
     my_error_t rc = SUCCESS;
-    if (fout == nullptr)
-        rc = NULLPTR_ERROR;
-    else if (size < 0)
-        rc = EDGES_SIZE_ERROR;
-    else if (0 > fprintf(fout, "%d\n", size))
-        rc = FILE_WRITE_ERROR;
+    for (int i = 0; rc == SUCCESS && i < size; i++)
+        rc = edge_write(array[i], fout);
+
     return rc;
 }
 
-static my_error_t edges_array_write(FILE *fout, const edge_t *array, const int size) {
-    my_error_t rc = SUCCESS;
-    if (fout == nullptr)
-        rc = NULLPTR_ERROR;
-    else if (array == nullptr)
-        rc = NO_DATA_ERROR;
-    else if (size < 0)
-        rc = EDGES_SIZE_ERROR;
-    else
-        for (int i = 0; rc == SUCCESS && i < size; i++)
-            rc = edge_write(fout, array[i]);
-    return rc;
-}
-
-my_error_t edges_write(FILE *fout, const edges_t &edges)
+my_error_t edges_write(const edges_t &edges, FILE *fout)
 {
-    my_error_t rc;
-    if (fout)
-    {
-        rc = edges_size_write(fout, edges.size);
-        if (rc == SUCCESS)
-            rc = edges_array_write(fout, edges.array, edges.size);
-    }
-    else
-        rc = NULLPTR_ERROR;
+    if (!fout)
+        return NULLPTR_ERROR;
+
+    my_error_t rc = edges_size_write(edges.size, fout);
+    if (rc == SUCCESS)
+        rc = edges_array_write(edges.array, edges.size, fout);
+
     return rc;
 }
 
 
 my_error_t edges_get(const edges_t &edges, edge_t **edge, const int index)
 {
-    my_error_t rc = SUCCESS;
-    if (edges.array && edges.size > 0)
-        *edge = &edges.array[index];
-    else
-        rc = NO_DATA_ERROR;
-    return rc;
+    if (!edges.array || edges.size <= 0)
+        return NO_DATA_ERROR;
+
+    *edge = &edges.array[index];
+
+    return SUCCESS;
 }

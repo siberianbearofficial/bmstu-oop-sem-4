@@ -1,18 +1,17 @@
 #include "edge.h"
 
-my_error_t edge_read(FILE *fin, edge_t &edge)
+my_error_t edge_read(edge_t &edge, FILE *fin)
 {
-    my_error_t rc = SUCCESS;
-    if (fin == nullptr)
-        rc = FILE_OPEN_ERROR;
-    else if (fscanf(fin, "%d %d", &edge.p1, &edge.p2) != 2)
-        rc = FILE_READ_ERROR;
-    return rc;
+    if (!fin)
+        return FILE_OPEN_ERROR;
+    if (fscanf(fin, "%d %d", &edge.p1, &edge.p2) != 2)
+        return FILE_READ_ERROR;
+    return SUCCESS;
 }
 
-my_error_t edge_write(FILE *fin, const edge_t &edge)
+my_error_t edge_write(const edge_t &edge, FILE *fout)
 {
-    int rc = fprintf(fin, "%d %d\n", edge.p1, edge.p2);
+    int rc = fprintf(fout, "%d %d\n", edge.p1, edge.p2);
     if (0 > rc)
         return FILE_WRITE_ERROR;
     return SUCCESS;
