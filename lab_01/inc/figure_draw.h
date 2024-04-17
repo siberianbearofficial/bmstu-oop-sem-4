@@ -19,6 +19,6 @@ typedef struct line
     point_t p2;
 } segment_t;
 
-my_error_t figure_draw(const figure_t &figure, view_t &view);
+my_error_t figure_draw(figure_t *figure, const view_t &view);
 
 #endif // DRAW_FIGURE_H

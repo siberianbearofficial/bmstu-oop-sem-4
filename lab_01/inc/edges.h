@@ -13,13 +13,9 @@ typedef struct edges
     int size;
 } edges_t;
 
-my_error_t edges_allocate(edges_t **edges);
-
 my_error_t edges_free(edges_t **edges);
 
-my_error_t edges_initialize(edges_t &edges);
-
-my_error_t edges_read(edges_t &edges, FILE *fin);
+my_error_t edges_read(edges_t **edges, FILE *fin);
 
 my_error_t edges_write(const edges_t &edges, FILE *fout);
 

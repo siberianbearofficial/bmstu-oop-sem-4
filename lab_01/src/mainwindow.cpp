@@ -29,10 +29,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(ui->actionInfDeveloper, &QAction::triggered, this,
             &MainWindow::on_actionInfDeveloper_clicked);
-
-    request_t request;
-    request.action = INIT;
-    request_process(request);
 }
 
 MainWindow::~MainWindow()
@@ -70,14 +66,15 @@ void MainWindow::on_actionSave_clicked()
     request.filename = path.toUtf8().data();
 
     my_error_t rc = request_process(request);
-    if (rc)
-        my_error_show(rc);
-    else
+    if (rc != SUCCESS)
     {
-        rc = draw();
-        if (rc)
-            my_error_show(rc);
+        my_error_show(rc);
+        return;
     }
+
+    rc = draw();
+    if (rc != SUCCESS)
+        my_error_show(rc);
 }
 
 void MainWindow::on_actionLoad_clicked()
@@ -88,14 +85,15 @@ void MainWindow::on_actionLoad_clicked()
     request.filename = path.toUtf8().data();
 
     my_error_t rc = request_process(request);
-    if (rc)
-        my_error_show(rc);
-    else
+    if (rc != SUCCESS)
     {
-        rc = draw();
-        if (rc)
-            my_error_show(rc);
+        my_error_show(rc);
+        return;
     }
+
+    rc = draw();
+    if (rc != SUCCESS)
+        my_error_show(rc);
 }
 
 void MainWindow::on_actionInfFile_clicked()
@@ -134,14 +132,15 @@ void MainWindow::on_buttonMoving_clicked()
     };
 
     my_error_t rc = request_process(request);
-    if (rc)
-        my_error_show(rc);
-    else
+    if (rc != SUCCESS)
     {
-        rc = draw();
-        if (rc)
-            my_error_show(rc);
+        my_error_show(rc);
+        return;
     }
+
+    rc = draw();
+    if (rc != SUCCESS)
+        my_error_show(rc);
 }
 
 void MainWindow::on_buttonTurn_clicked()
@@ -155,14 +154,15 @@ void MainWindow::on_buttonTurn_clicked()
     };
 
     my_error_t rc = request_process(request);
-    if (rc)
-        my_error_show(rc);
-    else
+    if (rc != SUCCESS)
     {
-        rc = draw();
-        if (rc)
-            my_error_show(rc);
+        my_error_show(rc);
+        return;
     }
+
+    rc = draw();
+    if (rc != SUCCESS)
+        my_error_show(rc);
 }
 
 void MainWindow::on_buttonScale_clicked()
@@ -176,12 +176,14 @@ void MainWindow::on_buttonScale_clicked()
     };
 
     my_error_t rc = request_process(request);
-    if (rc)
-        my_error_show(rc);
-    else
+    if (rc != SUCCESS)
     {
-        rc = draw();
-        if (rc)
-            my_error_show(rc);
+        my_error_show(rc);
+        return;
     }
+
+    rc = draw();
+    if (rc != SUCCESS)
+        my_error_show(rc);
+
 }

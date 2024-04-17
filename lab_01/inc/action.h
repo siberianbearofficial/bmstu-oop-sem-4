@@ -24,7 +24,6 @@ typedef struct scale
 
 typedef enum action
 {
-    INIT,
     SAVE,
     LOAD,
     ROTATE,

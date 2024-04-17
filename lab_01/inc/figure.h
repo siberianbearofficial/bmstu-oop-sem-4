@@ -15,22 +15,16 @@ typedef struct figure
     edges_t *edges;
 } figure_t;
 
-my_error_t figure_allocate(figure_t **figure);
-
 my_error_t figure_free(figure_t **figure);
-
-my_error_t figure_initialize(figure_t &figure);
-
-my_error_t figure_create(figure_t **figure);
 
 my_error_t figure_load(figure_t **figure, const char *filename);
 
-my_error_t figure_save(const figure_t &figure, const char *filename);
+my_error_t figure_save(figure_t *figure, const char *filename);
 
-my_error_t figure_move(figure_t &figure, const move_t &vector);
+my_error_t figure_move(figure_t *figure, const move_t &vector);
 
-my_error_t figure_rotate(figure_t &figure, const rotate_t &angles);
+my_error_t figure_rotate(figure_t *figure, const rotate_t &angles);
 
-my_error_t figure_scale(figure_t &figure, const scale_t &coefficient);
+my_error_t figure_scale(figure_t *figure, const scale_t &coefficient);
 
 #endif // FIGURE_H

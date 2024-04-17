@@ -53,10 +53,16 @@ my_error_t segments_draw(const view_t &view, const points_t &points, const edges
     return rc;
 }
 
-my_error_t figure_draw(const figure_t &figure, view_t &view)
+my_error_t figure_draw(figure_t *figure, const view_t &view)
 {
+    if (!figure)
+        return NULLPTR_ERROR;
+
     my_error_t rc = view_scene_clear(view);
-    if (rc == SUCCESS)
-        rc = segments_draw(view, *figure.points, *figure.edges);
+    if (rc != SUCCESS)
+        return rc;
+
+    rc = segments_draw(view, *figure->points, *figure->edges);
+
     return rc;
 }

@@ -41,112 +41,57 @@ static my_error_t figure_center_reset(point_t &center, points_t &points)
     return rc;
 }
 
-
-my_error_t figure_allocate(figure_t **figure)
-{
-    my_error_t rc;
-    if (!figure)
-        return NULLPTR_ERROR;
-
-    auto *tmp_figure = (figure_t *) malloc(sizeof(figure_t));
-    if (!tmp_figure)
-        return MEMORY_ERROR;
-
-    *figure = tmp_figure;
-    rc = points_allocate(&(*figure)->points);
-    if (rc == SUCCESS)
-        rc = edges_allocate(&(*figure)->edges);
-
-    return rc;
-}
-
 my_error_t figure_free(figure_t **figure)
 {
-    my_error_t rc;
     if (!figure)
         return NULLPTR_ERROR;
 
-    rc = points_free(&(*figure)->points);
+    my_error_t rc = points_free(&(*figure)->points);
     if (rc != SUCCESS)
         return rc;
 
     rc = edges_free(&(*figure)->edges);
-    if (rc == SUCCESS)
-        free(*figure);
-
-    return rc;
-}
-
-my_error_t figure_initialize(figure_t &figure) {
-    my_error_t rc = point_initialize(figure.center);
     if (rc != SUCCESS)
         return rc;
 
-    rc = points_initialize(*figure.points);
-    if (rc == SUCCESS)
-        rc = edges_initialize(*figure.edges);
+    free(*figure);
+    *figure = nullptr;
 
     return rc;
 }
-
-my_error_t figure_create(figure_t **figure)
-{
-    my_error_t rc = figure_allocate(figure);
-    if (rc != SUCCESS)
-        return rc;
-
-    rc = figure_initialize(**figure);
-
-    return rc;
-}
-
-static my_error_t figure_read_content(figure_t &figure, FILE *fin)
-{
-    my_error_t rc = points_read(*figure.points, fin);
-    if (rc != SUCCESS)
-        return rc;
-
-    rc = edges_read(*figure.edges, fin);
-    if (rc != SUCCESS)
-        points_free(&figure.points);
-
-    return rc;
-}
-
 
 static my_error_t figure_read(figure_t **figure, FILE *fin)
 {
     if (!fin || !figure)
         return NULLPTR_ERROR;
 
-    figure_t *new_figure;
+    auto *tmp_figure = (figure_t *) malloc(sizeof(figure_t));
+    if (!tmp_figure)
+        return MEMORY_ERROR;
 
-    // todo какая-то херня тут происходит, слишком много действий. надо выпилить allocate памяти и спрятать ее в read
-    my_error_t rc = figure_allocate(&new_figure);
-    if (rc != SUCCESS)
-        return rc;
-
-    rc = figure_initialize(*new_figure);
+    my_error_t rc = points_read(&tmp_figure->points, fin);
     if (rc != SUCCESS)
     {
-        figure_free(&new_figure);
+        free(tmp_figure);
         return rc;
     }
 
-    rc = figure_read_content(*new_figure, fin);
+    rc = edges_read(&tmp_figure->edges, fin);
     if (rc != SUCCESS)
     {
-        figure_free(&new_figure);
+        free(tmp_figure);
         return rc;
     }
 
-    *figure = new_figure;
+    *figure = tmp_figure;
 
     return rc;
 }
 
 my_error_t figure_load(figure_t **figure, const char *filename)
 {
+    if (!figure)
+        return NULLPTR_ERROR;
     if (!filename)
         return FILE_OPEN_ERROR;
 
@@ -157,6 +102,8 @@ my_error_t figure_load(figure_t **figure, const char *filename)
     my_error_t rc = figure_read(figure, fin);
     if (rc == SUCCESS)
         rc = figure_center_reset((*figure)->center, *(*figure)->points);
+    else
+        figure_free(figure);
 
     fclose(fin);
 
@@ -176,16 +123,18 @@ static my_error_t figure_write(const figure_t &figure, FILE *fout)
     return rc;
 }
 
-my_error_t figure_save(const figure_t &figure, const char *filename)
+my_error_t figure_save(figure_t *figure, const char *filename)
 {
     if (!filename)
         return FILE_OPEN_ERROR;
+    if (!figure)
+        return NULLPTR_ERROR;
 
     FILE *fout = fopen(filename, "w");
     if (!fout)
         return FILE_WRITE_ERROR;
 
-    my_error_t rc = figure_write(figure, fout);
+    my_error_t rc = figure_write(*figure, fout);
 
     fclose(fout);
 
@@ -193,23 +142,30 @@ my_error_t figure_save(const figure_t &figure, const char *filename)
 }
 
 
-my_error_t figure_move(figure_t &figure, const move_t &vector)
+my_error_t figure_move(figure_t *figure, const move_t &vector)
 {
-    my_error_t rc = point_move(figure.center, vector);
+    if (!figure)
+        return NULLPTR_ERROR;
+
+    my_error_t rc = point_move(figure->center, vector);
     if (rc != SUCCESS)
         return rc;
 
-    rc = points_move(*figure.points, vector);
+    rc = points_move(*figure->points, vector);
 
     return rc;
 }
 
-my_error_t figure_scale(figure_t &figure, const scale_t &coefficients)
+my_error_t figure_scale(figure_t *figure, const scale_t &coefficients)
 {
-    return points_scale(*figure.points, figure.center, coefficients);
+    if (!figure)
+        return NULLPTR_ERROR;
+    return points_scale(*figure->points, figure->center, coefficients);
 }
 
-my_error_t figure_rotate(figure_t &figure, const rotate_t &angles)
+my_error_t figure_rotate(figure_t *figure, const rotate_t &angles)
 {
-    return points_rotate(*figure.points, figure.center, angles);
+    if (!figure)
+        return NULLPTR_ERROR;
+    return points_rotate(*figure->points, figure->center, angles);
 }
